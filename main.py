@@ -11,11 +11,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
-
+from datetime import datetime, timedelta
 
 
 if __name__=='__main__':
-    # url_inss = f'https://www.inss.org.il/he/publication/war-data/'
+    
+    ##################################### Scraper for inss war data #######################################
     url_inss = f'https://e.infogram.com/59405860-724c-4860-af6d-b265a61f42ea?src=embed'
 
     chrome_driver_path = f'C:/Users/user/OneDrive - Bar-Ilan University/chromedriver-win64/chromedriver.exe'
@@ -78,6 +79,53 @@ if __name__=='__main__':
             attacks_hesbolla["description"] = desc
             attacks_hesbolla["location"] = locs
             
-    print(len(attacks_israel["location"]),len(attacks_israel["description"]) )
-    print(len(attacks_hesbolla["location"]),len(attacks_hesbolla["description"]) )
+    # print(len(attacks_israel["location"]),len(attacks_israel["description"]) )
+    # print(len(attacks_hesbolla["location"]),len(attacks_hesbolla["description"]) )
+    
+    ##################################### Scraper for IDF war-logs #######################################
+    
+    last_date = datetime.strptime(last_date, '%d/%m/%y')
+
+    # Get the current date
+    current_date = datetime.now()
+
+
+    logs_list = []
+    for i in range((current_date - last_date).days + 1):
+        date = (last_date + timedelta(days=i)).strftime('%d-%m-%y')[:-3]
+        # print(date)
+        idf_url = f'https://www.idf.il/%D7%90%D7%AA%D7%A8%D7%99-%D7%99%D7%97%D7%99%D7%93%D7%95%D7%AA/%D7%99%D7%95%D7%9E%D7%9F-%D7%94%D7%9E%D7%9C%D7%97%D7%9E%D7%94/%D7%99%D7%95%D7%9E%D7%9F-%D7%94%D7%9E%D7%9C%D7%97%D7%9E%D7%94-%D7%AA%D7%9E%D7%95%D7%A0%D7%AA-%D7%94%D7%9E%D7%A6%D7%91-%D7%9C%D7%90%D7%95%D7%A8%D7%9A-%D7%94%D7%99%D7%9E%D7%99%D7%9D/%D7%99%D7%95%D7%9E%D7%9F-%D7%94%D7%9E%D7%9C%D7%97%D7%9E%D7%94-{date}/'
+        
+        # Send a GET request to the URL
+        driver_idf = webdriver.Chrome()
+        driver_idf.get(idf_url)
+        html_idf = driver_idf.page_source
+        soup_idf = BeautifulSoup(html_idf, 'html.parser')
+
+
+        message_tag = soup_idf.find('h3', class_='heading-default h3-heading')
+        if message_tag and 'אין מה לראות כאן' in message_tag.get_text():
+            date_obj = datetime.strptime(date, '%d-%m')
+            day = date_obj.day
+            month = date_obj.month
+            idf_url = f'https://www.idf.il/%D7%90%D7%AA%D7%A8%D7%99-%D7%99%D7%97%D7%99%D7%93%D7%95%D7%AA/%D7%99%D7%95%D7%9E%D7%9F-%D7%94%D7%9E%D7%9C%D7%97%D7%9E%D7%94/%D7%99%D7%95%D7%9E%D7%9F-%D7%94%D7%9E%D7%9C%D7%97%D7%9E%D7%94-%D7%AA%D7%9E%D7%95%D7%A0%D7%AA-%D7%94%D7%9E%D7%A6%D7%91-%D7%9C%D7%90%D7%95%D7%A8%D7%9A-%D7%94%D7%99%D7%9E%D7%99%D7%9D/%D7%99%D7%95%D7%9E%D7%9F-%D7%94%D7%9E%D7%9C%D7%97%D7%9E%D7%94-{day}-%D7%91%D7%90%D7%95%D7%92%D7%95%D7%A1%D7%9{month}-2024/'
+            driver_idf = webdriver.Chrome()
+            driver_idf.get(idf_url)
+            html_idf = driver_idf.page_source
+            soup_idf = BeautifulSoup(html_idf, 'html.parser')
+        
+        # Example: Extract the title of the webpage
+        # title = soup_idf.title.string
+        # print('Page Title:', title)
+        time.sleep(5)
+        # Example: Extract all links from the webpage
+        logs = soup_idf.find_all('p')
+        
+        for log in logs:
+            logs_list.append(log.get_text())
+        
+    with open('IDF_war_logs.txt', 'a', encoding='utf-8') as file:
+            for log in logs_list:
+                file.write(log + '\n')
+
     
