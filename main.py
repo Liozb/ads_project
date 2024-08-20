@@ -5,6 +5,7 @@ import requests
 import seaborn as sns
 import matplotlib.pyplot as plt
 import re
+import os
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -89,10 +90,14 @@ if __name__=='__main__':
     # Get the current date
     current_date = datetime.now()
 
-
+    war_log_data = {}
+    time_in_day = []
+    war_log_desc = []
+    war_log_date = []
     logs_list = []
     for i in range((current_date - last_date).days + 1):
-        date = (last_date + timedelta(days=i)).strftime('%d-%m-%y')[:-3]
+        full_date = (last_date + timedelta(days=i)).strftime('%d-%m-%y')
+        date = full_date[:-3]
         # print(date)
         idf_url = f'https://www.idf.il/%D7%90%D7%AA%D7%A8%D7%99-%D7%99%D7%97%D7%99%D7%93%D7%95%D7%AA/%D7%99%D7%95%D7%9E%D7%9F-%D7%94%D7%9E%D7%9C%D7%97%D7%9E%D7%94/%D7%99%D7%95%D7%9E%D7%9F-%D7%94%D7%9E%D7%9C%D7%97%D7%9E%D7%94-%D7%AA%D7%9E%D7%95%D7%A0%D7%AA-%D7%94%D7%9E%D7%A6%D7%91-%D7%9C%D7%90%D7%95%D7%A8%D7%9A-%D7%94%D7%99%D7%9E%D7%99%D7%9D/%D7%99%D7%95%D7%9E%D7%9F-%D7%94%D7%9E%D7%9C%D7%97%D7%9E%D7%94-{date}/'
         
@@ -102,7 +107,7 @@ if __name__=='__main__':
         html_idf = driver_idf.page_source
         soup_idf = BeautifulSoup(html_idf, 'html.parser')
 
-
+        page_not_found = False
         message_tag = soup_idf.find('h3', class_='heading-default h3-heading')
         if message_tag and 'אין מה לראות כאן' in message_tag.get_text():
             date_obj = datetime.strptime(date, '%d-%m')
@@ -114,16 +119,55 @@ if __name__=='__main__':
             html_idf = driver_idf.page_source
             soup_idf = BeautifulSoup(html_idf, 'html.parser')
         
+        
+        message_tag = soup_idf.find('h3', class_='heading-default h3-heading')
+        if message_tag and 'אין מה לראות כאן' in message_tag.get_text():
+            idf_url = f'https://www.idf.il/%D7%90%D7%AA%D7%A8%D7%99-%D7%99%D7%97%D7%99%D7%93%D7%95%D7%AA/%D7%99%D7%95%D7%9E%D7%9F-%D7%94%D7%9E%D7%9C%D7%97%D7%9E%D7%94/%D7%99%D7%95%D7%9E%D7%9F-%D7%94%D7%9E%D7%9C%D7%97%D7%9E%D7%94-%D7%AA%D7%9E%D7%95%D7%A0%D7%AA-%D7%94%D7%9E%D7%A6%D7%91-%D7%9C%D7%90%D7%95%D7%A8%D7%9A-%D7%94%D7%99%D7%9E%D7%99%D7%9D/%D7%99%D7%95%D7%9E%D7%9F-%D7%94%D7%9E%D7%9C%D7%97%D7%9E%D7%94-%D7%9B%D7%9C-%D7%94%D7%A2%D7%93%D7%9B%D7%95%D7%A0%D7%99%D7%9D-%D7%95%D7%94%D7%AA%D7%99%D7%A2%D7%95%D7%93%D7%99%D7%9D-%D7%94%D7%90%D7%97%D7%A8%D7%95%D7%A0%D7%99%D7%9D-{date}/'
+            driver_idf = webdriver.Chrome()
+            driver_idf.get(idf_url)
+            html_idf = driver_idf.page_source
+            soup_idf = BeautifulSoup(html_idf, 'html.parser')
+            
+            
+        message_tag = soup_idf.find('h3', class_='heading-default h3-heading') 
+        if message_tag and 'אין מה לראות כאן' in message_tag.get_text():
+            logs = ["page not found"]
+            page_not_found = True
         # Example: Extract the title of the webpage
         # title = soup_idf.title.string
         # print('Page Title:', title)
         time.sleep(5)
         # Example: Extract all links from the webpage
-        logs = soup_idf.find_all('p')
+        if page_not_found == False:
+            logs = soup_idf.find_all('p')
         
+        logs_list.append(f"########################{full_date}#####################################")
         for log in logs:
             logs_list.append(log.get_text())
+            if page_not_found == False:
+                if '|' in log.get_text():
+                    log_split = log.get_text().split('|')
+                    #print(log_split)
+                    time_in_day.append(log_split[0])
+                    war_log_desc.append(log_split[1])
+                    war_log_date.append(date)
+                else:
+                    # print(war_log_desc)
+                    war_log_desc[-1] = war_log_desc[-1] + " " + log.get_text()
+                
         
+    war_log_data["time_in_day"] = time_in_day
+    war_log_data["war_log_desc"] = war_log_desc
+    war_log_data["war_log_date"] = war_log_date 
+    
+    print(len(time_in_day))
+    print(len(war_log_desc))
+    print(len(war_log_date))
+    
+    war_log_df = pd.DataFrame.from_dict(war_log_data)
+    print(war_log_df.head())
+    
+    os.remove('IDF_war_logs.txt') 
     with open('IDF_war_logs.txt', 'a', encoding='utf-8') as file:
             for log in logs_list:
                 file.write(log + '\n')
