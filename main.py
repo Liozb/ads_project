@@ -10,9 +10,11 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 import time
 from datetime import datetime, timedelta
+from translate import translate 
 
 
 if __name__=='__main__':
@@ -20,10 +22,16 @@ if __name__=='__main__':
     ##################################### Scraper for inss war data #######################################
     url_inss = f'https://e.infogram.com/59405860-724c-4860-af6d-b265a61f42ea?src=embed'
 
-    chrome_driver_path = f'C:/Users/user/OneDrive - Bar-Ilan University/chromedriver-win64/chromedriver.exe'
+    # chrome_driver_path = f'C:/Users/user/OneDrive - Bar-Ilan University/chromedriver-win64/chromedriver.exe'
+    chrome_driver_path = f'chromedriver-linux64/chromedriver'
     service = Service(chrome_driver_path)
+    # options = Options()
     options = webdriver.ChromeOptions()
-    options.add_argument('--headless')  # Run in headless mode for no GUI
+    options.add_argument('--headless')  # Run Chrome in headless mode
+    options.add_argument('--disable-gpu')  # Disable GPU
+    options.add_argument('--no-sandbox')  # Bypass OS security model
+    options.add_argument('--disable-dev-shm-usage')
+    options.binary_location = 'chromium/chrome-linux/chrome'
     driver = webdriver.Chrome(service=service, options=options)
     
     driver.get(url_inss)
@@ -102,7 +110,7 @@ if __name__=='__main__':
         idf_url = f'https://www.idf.il/%D7%90%D7%AA%D7%A8%D7%99-%D7%99%D7%97%D7%99%D7%93%D7%95%D7%AA/%D7%99%D7%95%D7%9E%D7%9F-%D7%94%D7%9E%D7%9C%D7%97%D7%9E%D7%94/%D7%99%D7%95%D7%9E%D7%9F-%D7%94%D7%9E%D7%9C%D7%97%D7%9E%D7%94-%D7%AA%D7%9E%D7%95%D7%A0%D7%AA-%D7%94%D7%9E%D7%A6%D7%91-%D7%9C%D7%90%D7%95%D7%A8%D7%9A-%D7%94%D7%99%D7%9E%D7%99%D7%9D/%D7%99%D7%95%D7%9E%D7%9F-%D7%94%D7%9E%D7%9C%D7%97%D7%9E%D7%94-{date}/'
         
         # Send a GET request to the URL
-        driver_idf = webdriver.Chrome()
+        driver_idf = webdriver.Chrome(service=service, options=options)
         driver_idf.get(idf_url)
         html_idf = driver_idf.page_source
         soup_idf = BeautifulSoup(html_idf, 'html.parser')
@@ -114,7 +122,7 @@ if __name__=='__main__':
             day = date_obj.day
             month = date_obj.month
             idf_url = f'https://www.idf.il/%D7%90%D7%AA%D7%A8%D7%99-%D7%99%D7%97%D7%99%D7%93%D7%95%D7%AA/%D7%99%D7%95%D7%9E%D7%9F-%D7%94%D7%9E%D7%9C%D7%97%D7%9E%D7%94/%D7%99%D7%95%D7%9E%D7%9F-%D7%94%D7%9E%D7%9C%D7%97%D7%9E%D7%94-%D7%AA%D7%9E%D7%95%D7%A0%D7%AA-%D7%94%D7%9E%D7%A6%D7%91-%D7%9C%D7%90%D7%95%D7%A8%D7%9A-%D7%94%D7%99%D7%9E%D7%99%D7%9D/%D7%99%D7%95%D7%9E%D7%9F-%D7%94%D7%9E%D7%9C%D7%97%D7%9E%D7%94-{day}-%D7%91%D7%90%D7%95%D7%92%D7%95%D7%A1%D7%9{month}-2024/'
-            driver_idf = webdriver.Chrome()
+            driver_idf = webdriver.Chrome(service=service, options=options)
             driver_idf.get(idf_url)
             html_idf = driver_idf.page_source
             soup_idf = BeautifulSoup(html_idf, 'html.parser')
@@ -123,7 +131,7 @@ if __name__=='__main__':
         message_tag = soup_idf.find('h3', class_='heading-default h3-heading')
         if message_tag and 'אין מה לראות כאן' in message_tag.get_text():
             idf_url = f'https://www.idf.il/%D7%90%D7%AA%D7%A8%D7%99-%D7%99%D7%97%D7%99%D7%93%D7%95%D7%AA/%D7%99%D7%95%D7%9E%D7%9F-%D7%94%D7%9E%D7%9C%D7%97%D7%9E%D7%94/%D7%99%D7%95%D7%9E%D7%9F-%D7%94%D7%9E%D7%9C%D7%97%D7%9E%D7%94-%D7%AA%D7%9E%D7%95%D7%A0%D7%AA-%D7%94%D7%9E%D7%A6%D7%91-%D7%9C%D7%90%D7%95%D7%A8%D7%9A-%D7%94%D7%99%D7%9E%D7%99%D7%9D/%D7%99%D7%95%D7%9E%D7%9F-%D7%94%D7%9E%D7%9C%D7%97%D7%9E%D7%94-%D7%9B%D7%9C-%D7%94%D7%A2%D7%93%D7%9B%D7%95%D7%A0%D7%99%D7%9D-%D7%95%D7%94%D7%AA%D7%99%D7%A2%D7%95%D7%93%D7%99%D7%9D-%D7%94%D7%90%D7%97%D7%A8%D7%95%D7%A0%D7%99%D7%9D-{date}/'
-            driver_idf = webdriver.Chrome()
+            driver_idf = webdriver.Chrome(service=service, options=options)
             driver_idf.get(idf_url)
             html_idf = driver_idf.page_source
             soup_idf = BeautifulSoup(html_idf, 'html.parser')
@@ -143,7 +151,10 @@ if __name__=='__main__':
         
         logs_list.append(f"########################{full_date}#####################################")
         for log in logs:
-            logs_list.append(log.get_text())
+            if type(log) is str:
+                logs_list.append(log)
+            else:
+                logs_list.append(log.get_text())
             if page_not_found == False:
                 if '|' in log.get_text():
                     log_split = log.get_text().split('|')
@@ -155,7 +166,7 @@ if __name__=='__main__':
                     # print(war_log_desc)
                     war_log_desc[-1] = war_log_desc[-1] + " " + log.get_text()
                 
-        
+    war_log_desc = translate(war_log_desc)
     war_log_data["time_in_day"] = time_in_day
     war_log_data["war_log_desc"] = war_log_desc
     war_log_data["war_log_date"] = war_log_date 
