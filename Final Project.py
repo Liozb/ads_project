@@ -46,6 +46,10 @@ def file_process(input_file, output_file1, output_file2):
     print("extractd descr: ", np.size(descriptions))
 
     # Extract dates from descriptions
+    for desc in descriptions:
+      if re.search(date_pattern, desc) == None:
+        print(desc)
+    
     dates = [re.search(date_pattern, desc).group(1) for desc in descriptions]
     numeric_dates = [datetime.strptime(date, "%d %B %Y").strftime("%d-%m-%Y") for date in dates]
 
