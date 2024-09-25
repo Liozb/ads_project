@@ -35,15 +35,18 @@ attacks_data[1] = attacks_data[1].split(']]]')[0]
 for idx, dir in enumerate(attacks_data):
     attacks_data[idx] = attacks_data[idx].split('],[')
     locations = []
+    locations_coor =[]
     descriptions = []
     with open(f'attacks_{idx}.txt', 'w', encoding='utf-8') as file:
         for attack in attacks_data[idx]:
             location = attack.split('"value":"')[1].split('"')[0]
             locations.append(location)
+            location_coor = attack.split('"value":')[3].split('},{')[0].replace('"','')
+            locations_coor.append(location_coor)
             description = attack.split('"value":')
             description = max(description, key=len).split('},{')[0].split('}')[0]
             descriptions.append(description)
-            file.write(f'{location=}' + '\n' + f'{description=}' + '\n')
+            file.write(f'{location=}' + '\n' + f'{location_coor=}' + '\n' + f'{description=}' + '\n')
 
     if idx == 0:
         attacks_israel['locations'] = locations
@@ -51,3 +54,5 @@ for idx, dir in enumerate(attacks_data):
     else:
         attacks_hesbolla['locations'] = locations
         attacks_hesbolla['descriptions'] = descriptions
+    
+    print(locations_coor)

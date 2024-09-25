@@ -26,23 +26,27 @@ def file_process(input_file, output_file1, output_file2):
     with open(input_file, 'r') as file:
         text_data = file.read()
     locations_count = text_data.count("location=".lower())
+    locations_coor_count = text_data.count("location_coor=".lower())
     desc = text_data.count("description=".lower())
 
     # trouble shooting
     print("num of loc: ", locations_count)
+    print("num of loc_coor: ", locations_coor_count)
     print("num of descr: ", desc)
 
     # Regular expressions to capture location, date, and description
-    pattern = r"location='(.*?)'\s*description='(.*?)'"
+    pattern = r"location='(.*?)'\s*location_coor='(.*?)'\s*description='(.*?)'"
     matches = re.findall(pattern, text_data, re.DOTALL)
 
     # Extract locations and descriptions
     locations = [match[0] for match in matches]
-    descriptions = [match[1].replace('"', '').replace("\\'", "'").strip() for match in matches]
+    locations_coor = [match[1] for match in matches]
+    descriptions = [match[2].replace('"', '').replace("\\'", "'").strip() for match in matches]
     date_pattern = r'(\d{1,2} \w+ \d{4})'  # Matches dates like "22 March 2024"
 
     # trouble shooting
     print("extracted loc: ", np.size(locations))
+    print("extracted loc_coor: ", np.size(locations_coor))
     print("extractd descr: ", np.size(descriptions))
 
     # Extract dates from descriptions
@@ -56,6 +60,7 @@ def file_process(input_file, output_file1, output_file2):
     # Create a DataFrame
     df = pd.DataFrame({
         'Location': locations,
+        'Coordinates': locations_coor,
         'Date': numeric_dates,
         'Description': descriptions
     })
